@@ -2,7 +2,7 @@ import Bookings from "../models/Bookings.js";
 import Rides from "../models/Ride.js";
 
 export async function sendCreateRidePage(req,res){
-    res.render("rides/create",{user:req.user.id});
+    res.render("rides/create");
 }
 export async function createRide(req, res) {
     const { source, destination, date, departureTime, price, totalSeats } = req.body;
@@ -16,11 +16,11 @@ export async function createRide(req, res) {
             departureTime,
             totalSeats: totalSeats,
             date: new Date(date),
-            sourceCoordinates: {
+            sourceCoords: {
                 lat: parseFloat(req.body.sourceLat),
                 lng: parseFloat(req.body.sourceLng)
             },
-            destinationCoordinates: {
+            destinationCoords: {
                 lat: parseFloat(req.body.destLat),
                 lng: parseFloat(req.body.destLng)
             }
@@ -34,7 +34,7 @@ export async function createRide(req, res) {
 
 export async function showOwnPublishedRides(req,res){
     const rides=await Rides.find({driver:req.user.id});
-    res.render("rides/my_rides",{user:req.user,rides,error:null});
+    res.render("rides/my_rides",{rides,error:null});
 }
 
 export async function showAllRides(req, res) {
@@ -69,11 +69,11 @@ export async function showAllRides(req, res) {
             .populate("driver", "name profilePic")
             .sort({ date: 1 });
 
-        res.render("rides/list", { user: req.user, rides, error: null, query: req.query || {} });
+        res.render("rides/list", { rides, error: null, query: req.query || {} });
 
     } catch (error) {
         console.error("Search error:", error);
-        res.render("rides/list", { user: req.user, rides: [], error: "Search failed.", query: req.query || {} });
+        res.render("rides/list", { rides: [], error: "Search failed.", query: req.query || {} });
     }
 }
 
@@ -88,7 +88,7 @@ export async function getRideDetails(req, res) {
             passengers = await Bookings.find({ ride: ride._id })
                 .populate("passenger", "name profilePic");
         }
-        res.render("rides/details", { user: req.user, ride, passengers, error: null });
+        res.render("rides/details", { ride, passengers, error: null });
     } catch (error) {
         console.error("Error fetching ride details:", error);
         res.redirect("/rides/search");
@@ -100,25 +100,25 @@ export async function cancelRide(req, res) {
         const rideId = req.params.id;
         const driverId = req.user.id;
 
-        // 1. Find the ride and ensure the logged-in user is the actual driver
+
         const ride = await Rides.findOne({ _id: rideId, driver: driverId });
 
         if (!ride) {
             return res.status(404).send("Ride not found or you are unauthorized to cancel it.");
         }
 
-        // 2. Soft delete: Update the ride status and clear available seats
+
         ride.status = "cancelled";
         ride.availableSeats = 0; 
         await ride.save();
 
-        // 3. Find ALL bookings for this ride and mark them as cancelled in one sweep
+
         await Bookings.updateMany(
             { ride: rideId },
             { $set: { status: "cancelled" } }
         );
 
-        // 4. Redirect the driver back to their dashboard
+
         res.redirect("/rides/myRides");
 
     } catch (error) {

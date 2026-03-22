@@ -7,7 +7,7 @@ export async function createBooking(req,res){
     const ride=await Rides.findById(req.params.id);
     if(!ride||ride.availableSeats<seatsBooked)return res.redirect("/rides/"+req.params.id);
     if(ride.driver._id==req.user.id){
-        return res.status(400,{status:false,error:"cannot book own ride"});
+        return res.status(400).json({status:false,error:"cannot book own ride"});
     }
     const created=await Bookings.create({
         ride:ride._id,
@@ -29,7 +29,7 @@ export async function getMyBookings(req,res){
             .populate("driver", "name profilePicture")
             .sort({ createdAt: -1 });
 
-        res.render("bookings/my_bookings", {user:req.user, bookings: myBookings, error: null });
+        res.render("bookings/my_bookings", { bookings: myBookings, error: null });
 
     } catch (err) {
         console.error(err);
@@ -41,12 +41,11 @@ export async function cancelBooking(req,res){
         const booking=await Bookings.findById(req.params.id)
             .populate("ride")
             .populate("passenger","_id");
-        booking.ride.availableSeats=booking.ride.availableSeats+booking.seatsBooked;
-        booking.status="cancelled";
         if(booking.passenger._id==req.user.id){
+            booking.ride.availableSeats=booking.ride.availableSeats+booking.seatsBooked;
+            booking.status="cancelled";
             await booking.ride.save();
             await booking.save();
-            
         } 
         res.redirect(`/bookings/my`);
     }catch(err){
@@ -60,14 +59,14 @@ export async function confirmPayment(req, res) {
         
         if (!booking) return res.redirect("/profile");
 
-        // SECURITY CHECK: Ensure the person clicking confirm is actually the driver of this ride!
+
         if (booking.ride.driver.toString() === req.user.id) {
             booking.paymentStatus = true;
-            booking.status = "confirmed"; // Upgrades status from 'pending' to 'confirmed'
+            booking.status = "confirmed";
             await booking.save();
         }
         
-        // Redirect the driver back to the ride details page so they see the green "Paid" text
+
         res.redirect(`/rides/${booking.ride._id}`);
         
     } catch (error) {

@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <!-- Hidden coordinates fetched dynamically via OpenStreetMap API -->
+
         <input type="hidden" name="sourceLat" value="">
         <input type="hidden" name="sourceLng" value="">
         <input type="hidden" name="destLat" value="">
@@ -68,36 +68,19 @@
         submitBtn.disabled = true;
 
         try {
-            // 1. Fetch Coordinates from OpenStreetMap
-            const [sourceRes, destRes] = await Promise.all([
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(sourceCity)}`),
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(destCity)}`)
-            ]);
-            
-            const sourceData = await sourceRes.json();
-            const destData = await destRes.json();
 
-            if (sourceData.length > 0) {
-                form.sourceLat.value = sourceData[0].lat;
-                form.sourceLng.value = sourceData[0].lon; 
-            } else {
-                throw new Error(`Could not find coordinates for: ${sourceCity}`);
-            }
+            form.sourceLat.value = 30.7333;
+            form.sourceLng.value = 76.7794; 
+            form.destLat.value = 28.7041;
+            form.destLng.value = 77.1025;
 
-            if (destData.length > 0) {
-                form.destLat.value = destData[0].lat;
-                form.destLng.value = destData[0].lon;
-            } else {
-                throw new Error(`Could not find coordinates for: ${destCity}`);
-            }
 
-            // 2. Prepare data for your Express backend
             submitBtn.textContent = 'Creating...';
             
             const formData = new FormData(form);
             const dataObj = Object.fromEntries(formData.entries());
 
-            // 3. Send the JSON data to your Express controller
+
             const res = await fetch('/rides/create', {
                 method: 'POST',
                 body: JSON.stringify(dataObj),
@@ -105,7 +88,7 @@
             });
 
             if (res.ok) {
-                // Assuming your frontend expects to go here after success
+
                 window.location.assign('/rides/myRides'); 
             } else {
                 const textError = await res.text();

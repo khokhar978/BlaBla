@@ -26,8 +26,7 @@ export async function verifyCredentials(req,res) {
             return res.render("verify",{error:null,email});
         }else{
             const token=jwt.sign({
-                id:user._id,
-                role:user.role
+                id:user._id
             },process.env.JWTSECRET,{expiresIn:"1d"});
 
             res.cookie("token",token,{
@@ -35,7 +34,7 @@ export async function verifyCredentials(req,res) {
                 maxAge:24*60*60*1000
             })
 
-            return res.redirect(302,"/homepage");
+            return res.redirect(302,"/");
         }
 
     }else{
@@ -45,8 +44,8 @@ export async function verifyCredentials(req,res) {
 }
 
 export async function createUser(req,res) {
-    const {name,email,password,confirmPassword,role}=req.body;
-    if(!name||!email||!password||!confirmPassword||!role){
+    const {name,email,password,confirmPassword}=req.body;
+    if(!name||!email||!password||!confirmPassword){
         return res.render("signup",{error:"Please fill all fields."});
     }
     if(password!=confirmPassword){
@@ -61,7 +60,6 @@ export async function createUser(req,res) {
             name,
             email,
             password:await bcrypt.hash(password,10),
-            role,
             otp,
             otpExpires:new Date(Date.now() + 600000)
         })
@@ -75,7 +73,7 @@ export async function verifyEmail(req,res) {
     const user=await Users.findOne({email:req.body.email});
     if(user){
         if(user.otp==req.body.otp&& Date.now()<=user.otpExpires){
-            await Users.updateOne({_id:user._id},{isVerified:true});
+            await Users.updateOne({_id:user._id},{isVerified:true, otp:null, otpExpires:null});
             return res.render("login",{error:null,data:null}); 
         }
     }
@@ -98,7 +96,7 @@ export async function resendOtp(req,res){
         }
         const otp=generateOtp();
         user.otp=otp;
-        user.expiresIn=new Date(Date.now()+600000);
+        user.otpExpires=new Date(Date.now()+600000);
         await user.save();
         sendOtpMail(user.email,otp);
         res.render("verify",{

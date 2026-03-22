@@ -1,32 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - BlaBla</title>
-</head>
-<body>
-    
-    <%- include('./navbar') %>
+<%- include('partials/header') %>
 
-    <h1>My Profile</h1>
+<div class="container" style="display: flex; flex-direction: column; gap: 30px; max-width: 800px; margin: 40px auto; padding: 20px;">
     
-    <div style="border: 1px solid #ccc; padding: 15px; max-width: 400px;">
-        <h3>Account Details</h3>
+    <!-- Profile Card -->
+    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;">
+        <h2 style="color: #0088cc; margin-top: 0;">My Profile</h2>
         <img src="<%= user.profilePic ? '/profilePictures/'+user.profilePic : '/profilePictures/avtar.webp' %>" 
-            height="100" 
-            width="100" 
-            alt="User Profile"> 
-        <p><strong>Name:</strong> <%= user.name %></p>
-        <p><strong>Email:</strong> <%= user.email %></p>
+             style="height: 120px; width: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #eaebed;" 
+             alt="User Profile"> 
+        <p style="font-size: 1.2rem; font-weight: bold; margin: 5px 0;"><%= user.name %></p>
+        <p style="color: #777; margin: 5px 0 20px 0;"><%= user.email %></p>
         
-        <p><strong>Role:</strong> <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></p>
+        <a href="/auth/logout" class="btn" style="background: #ff4757; color: white; padding: 10px 25px; font-size: 1rem; text-decoration: none; border-radius: 4px; display: inline-block;">Log Out</a>
     </div>
 
-    <br>
-    <form action="/auth/logout" method="POST">
-        <button type="submit">Log Out</button>
-    </form>
+    <!-- Search Rides Section -->
+    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h3 style="color: #0088cc; margin-top: 0; margin-bottom: 20px;">Search for a Ride</h3>
+        
+        <form action="/rides/search" method="GET" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; color: #555; font-size: 0.9rem;">Leaving from</label>
+                <input type="text" name="source" placeholder="e.g., Delhi" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" required>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; color: #555; font-size: 0.9rem;">Going to</label>
+                <input type="text" name="destination" placeholder="e.g., Chandigarh" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" required>
+            </div>
+            <div style="flex: 1; min-width: 130px;">
+                <label style="font-weight: bold; color: #555; font-size: 0.9rem;">Date</label>
+                <input type="date" name="date" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" required>
+            </div>
+            <div style="width: 80px;">
+                <label style="font-weight: bold; color: #555; font-size: 0.9rem;">Seats</label>
+                <input type="number" name="seats" placeholder="1" min="1" max="8" value="1" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" required>
+            </div>
+            <button type="submit" class="btn" style="height: 42px; padding: 0 20px; background: #0088cc; color: white; border: none; border-radius: 4px; cursor: pointer;">Find Ride</button>
+        </form>
+    </div>
 
-</body>
-</html>
+</div>
+
+<%- include('partials/footer') %>

@@ -10,10 +10,10 @@
                 
                 <div class="ride-card" style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
                     
-                    <!-- Safety check in case the ride was completely deleted -->
+
                     <% if (b.ride) { %>
                         
-                        <!-- Route & Booking Info -->
+
                         <div style="flex: 2; min-width: 250px;">
                             <h3 style="margin-top: 0; margin-bottom: 10px;"><%= b.ride.source %> ➔ <%= b.ride.destination %></h3>
                             <p style="margin: 5px 0;"><strong>Date:</strong> <%= new Date(b.ride.date).toLocaleDateString() %> at <%= b.ride.departureTime %></p>
@@ -24,11 +24,11 @@
                                     <%= b.status.toUpperCase() %>
                                 </span>
                             </p>
-                            <!-- Adjusted to match your Boolean paymentStatus from the schema -->
+
                             <p style="margin: 5px 0;"><strong>Payment:</strong> <%= b.paymentStatus ? 'Paid Online' : 'Pending (Cash on Ride)' %></p>
                         </div>
                         
-                        <!-- Driver Info -->
+
                         <div style="flex: 1; min-width: 150px; text-align: center; border-left: 1px solid #eee; border-right: 1px solid #eee; padding: 0 15px;">
                             <h4 style="margin-top: 0; margin-bottom: 10px; color: #666;">Driver</h4>
                             
@@ -45,7 +45,7 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
+
                         <div style="flex: 1; min-width: 150px; text-align: right;">
                             <% if (b.status !== 'cancelled' && b.ride.status !== 'cancelled') { %>
                                 <form action="/bookings/cancel/<%= b._id %>" method="POST" style="margin: 0;">

@@ -3,7 +3,7 @@
 <div class="container">
     <h2>Search Rides</h2>
     
-    <!-- Search Form -->
+
     <form action="/rides/search" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px;">
         <input type="text" name="source" placeholder="Leaving from..." value="<%= query.source || '' %>" style="flex: 1; min-width: 200px;">
         <input type="text" name="destination" placeholder="Going to..." value="<%= query.destination || '' %>" style="flex: 1; min-width: 200px;">

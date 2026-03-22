@@ -30,13 +30,13 @@
     const currentUserId = '<%= user.id %>';
     const chatMessages = document.getElementById('chat-messages');
 
-    // Join Room
+    // socket listeners and chat stuff
     socket.emit('joinRideChat', rideId);
     
-    // Auto scroll bottom
+
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Receive message
+
     socket.on('message', (msgData) => {
         const div = document.createElement('div');
         div.className = 'message';
@@ -52,7 +52,7 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     });
 
-    // Send Message
+
     document.getElementById('send-btn').addEventListener('click', async () => {
         const text = document.getElementById('msg-input').value.trim();
         if(!text) return;
@@ -68,7 +68,7 @@
             const data = await res.json();
             
             if(data.message) {
-                // Emit via socket.io
+
                 socket.emit('chatMessage', {
                     rideId: rideId,
                     text: data.message.text,

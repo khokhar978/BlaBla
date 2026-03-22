@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 
 <div class="container" style="display: flex; gap: 30px; flex-wrap: wrap; padding: 20px;">
-    <!-- Ride Information -->
+
     <div style="flex: 1; min-width: 300px;">
         <h2>Ride Details</h2>
         <div class="ride-card" style="display: block; border: 1px solid #ccc; padding: 20px; border-radius: 8px;">
@@ -18,7 +18,7 @@
                     <p style="margin: 5px 0;"><strong>Time:</strong> <%= ride.departureTime %></p>
                     <p style="margin: 5px 0;"><strong>Available Seats:</strong> <%= ride.availableSeats %> / <%= ride.totalSeats %></p>
                 </div>
-                <!-- Driver Info -->
+
                 <div style="text-align: center;">
                     <% if (ride.driver.profilePicture) { %>
                         <img src="<%= ride.driver.profilePicture %>" alt="Driver" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
@@ -32,13 +32,13 @@
 
             <hr style="margin: 15px 0;">
 
-            <!-- Safety check for user IDs -->
+
             <% const currentUserId = user ? (user.userId || user.id || user._id).toString() : null; %>
             <% const driverId = ride.driver._id.toString(); %>
 
             <% if (user && currentUserId !== driverId && ride.availableSeats > 0 && ride.status !== 'cancelled') { %>
                 
-                <!-- PASSENGER VIEW: BOOKING FORM -->
+
                 <form id="bookForm" style="margin-top: 15px;">
                     <input type="hidden" name="rideId" value="<%= ride._id %>">
                     <input type="hidden" name="seatsBooked" id="seatsBookedInput" value="1"> 
@@ -69,7 +69,7 @@
                 <p style="color: orange; font-weight: bold; text-align: center;">This ride is fully booked.</p>
             <% } else if (user && currentUserId === driverId) { %>
                 
-                <!-- DRIVER VIEW: PASSENGERS LIST -->
+
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
                     <h3 style="margin-top: 0; color: #0088cc;">Passengers (<%= typeof passengers !== 'undefined' ? passengers.length : 0 %>)</h3>
                     
@@ -123,59 +123,19 @@
         </div>
     </div>
     
-    <!-- Map Integration -->
+    <!-- maps placeholder -->
     <div style="flex: 1; min-width: 300px;">
         <h3>Route Map</h3>
-        <div id="map" class="map-container" style="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #ccc; z-index: 1;"></div>
+        <div class="map-container" style="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #ccc; background: #eaebed; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+            <h3 style="color: #666; margin: 0;">[Map Placeholder]</h3>
+            <p style="color: #888; margin: 10px 0 0 0;"><strong>Source:</strong> <%= ride.sourceCoords?.lat || 'N/A' %>, <%= ride.sourceCoords?.lng || 'N/A' %></p>
+            <p style="color: #888; margin: 5px 0 0 0;"><strong>Destination:</strong> <%= ride.destinationCoords?.lat || 'N/A' %>, <%= ride.destinationCoords?.lng || 'N/A' %></p>
+        </div>
     </div>
 </div>
 
-<!-- Base Leaflet CSS and JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Leaflet Routing Machine CSS and JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-
 <script>
-    // Leaflet Map Initialization
-    window.addEventListener("load", () => {
-        const sourceLat = <%= ride.sourceCoords?.lat || 30.7333 %>;
-        const sourceLng = <%= ride.sourceCoords?.lng || 76.7794 %>;
-        const destLat = <%= ride.destinationCoords?.lat || 28.7041 %>;
-        const destLng = <%= ride.destinationCoords?.lng || 77.1025 %>;
 
-        const map = L.map('map').setView([sourceLat, sourceLng], 5);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        L.Routing.control({
-            waypoints: [
-                L.latLng(sourceLat, sourceLng),
-                L.latLng(destLat, destLng)
-            ],
-            routeWhileDragging: false,
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            showAlternatives: false,
-            lineOptions: {
-                styles: [{color: '#ff4757', weight: 4}]
-            },
-            createMarker: function(i, wp, nWps) {
-                if (i === 0) {
-                    return L.marker(wp.latLng).bindPopup('Departure: <%= ride.source %>').openPopup();
-                } else if (i === nWps - 1) {
-                    return L.marker(wp.latLng).bindPopup('Destination: <%= ride.destination %>');
-                }
-            }
-        }).addTo(map);
-    });
-
-    // Booking Submission
     const form = document.getElementById('bookForm');
     if (form) {
         form.addEventListener('submit', async (e) => {
