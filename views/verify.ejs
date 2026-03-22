@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - BlaBla</title>
+</head>
+<body>
+    <%- include('./navbar') %>
+
+    <h1>Verify Your Account</h1>
+    <p>Please enter the 4-digit code sent to your email.</p>
+
+    <% if (error) { %>
+        <div style="color: red;"><strong>Error:</strong> <%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div style="color: green;"><strong>Success:</strong> <%= success %></div>
+    <% } %>
+
+    <form action="/auth/verify" method="POST">
+        <input type="hidden" name="email" value="<%= email %>">
+        
+        <div style="margin-bottom: 10px;">
+            <label for="otp">One-Time Password:</label><br>
+            <input type="text" id="otp" name="otp" required maxlength="4" pattern="\d{4}">
+        </div>
+
+        <button type="submit">Verify Account</button>
+    </form>
+
+    <br>
+    
+    <form action="/auth/resend-otp" method="POST">
+        <input type="hidden" name="email" value="<%= email %>">
+        <p>Didn't receive the code or it expired?</p>
+        <button type="submit">Resend OTP</button>
+    </form>
+
+</body>
+</html>

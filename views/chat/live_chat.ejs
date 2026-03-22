@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <h2>Live Chat: <%= ride.source %> ➔ <%= ride.destination %></h2>
+    <p>Chat with the driver and other passengers in this ride.</p>
+    
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <% messages.forEach(msg => { %>
+                <div class="message">
+                    <img src="<%= msg.sender.profilePicture %>" alt="Pic" class="profile-pic-small" style="vertical-align: middle;">
+                    <strong><%= msg.sender.name %>:</strong> <%= msg.text %>
+                    <span style="font-size: 0.8em; color: #999; margin-left: 10px;">
+                        <%= new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                    </span>
+                </div>
+            <% }) %>
+        </div>
+        <div class="chat-input" id="chat-form">
+            <input type="text" id="msg-input" placeholder="Type a message..." required />
+            <button class="btn" id="send-btn" style="border-radius: 0 0 5px 0;">Send</button>
+        </div>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    const rideId = '<%= ride._id %>';
+    const currentUserId = '<%= user.id %>';
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Join Room
+    socket.emit('joinRideChat', rideId);
+    
+    // Auto scroll bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Receive message
+    socket.on('message', (msgData) => {
+        const div = document.createElement('div');
+        div.className = 'message';
+        
+        const timestamp = new Date(msgData.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        div.innerHTML = `
+            <img src="${msgData.sender.profilePicture || '/uploads/profiles/default.png'}" class="profile-pic-small" style="vertical-align: middle;">
+            <strong>${msgData.sender.name}:</strong> ${msgData.text}
+            <span style="font-size: 0.8em; color: #999; margin-left: 10px;">${timestamp}</span>
+        `;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+
+    // Send Message
+    document.getElementById('send-btn').addEventListener('click', async () => {
+        const text = document.getElementById('msg-input').value.trim();
+        if(!text) return;
+        
+        document.getElementById('msg-input').value = '';
+
+        try {
+            const res = await fetch('/chat/send', {
+                method: 'POST',
+                body: JSON.stringify({ rideId, text }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            
+            if(data.message) {
+                // Emit via socket.io
+                socket.emit('chatMessage', {
+                    rideId: rideId,
+                    text: data.message.text,
+                    sender: data.message.sender,
+                    createdAt: data.message.createdAt
+                });
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    });
+
+</script>
+
+<%- include('../partials/footer') %>

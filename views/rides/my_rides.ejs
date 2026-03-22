@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+
+<div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <h2>My Published Rides</h2>
+    <p>Manage the trips you are offering as a driver.</p>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div style="color: red; margin-bottom: 15px;"><strong>Error:</strong> <%= error %></div>
+    <% } %>
+
+    <% if (rides.length > 0) { %>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <% rides.forEach(ride => { %>
+                
+                <div class="ride-card" style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    
+                    <div style="flex: 1; min-width: 250px;">
+                        <h3 style="margin-top: 0; margin-bottom: 10px;"><%= ride.source %> ➔ <%= ride.destination %></h3>
+                        <p style="margin: 5px 0;"><strong>Date:</strong> <%= new Date(ride.date).toLocaleDateString() %></p>
+                        <p style="margin: 5px 0;"><strong>Time:</strong> <%= ride.departureTime %></p>
+                        <p style="margin: 5px 0;"><strong>Price per Seat:</strong> ₹<%= ride.price %></p>
+                        <p style="margin: 5px 0;">
+                            <strong>Seats:</strong> <%= ride.availableSeats %> available out of <%= ride.totalSeats %>
+                        </p>
+                        <!-- Added this quick status badge so the driver knows if they cancelled it! -->
+                        <p style="margin: 5px 0;">
+                            <strong>Status:</strong> 
+                            <span style="color: <%= ride.status === 'cancelled' ? 'red' : 'green' %>;">
+                                <%= ride.status.toUpperCase() %>
+                            </span>
+                        </p>
+                    </div>
+
+                    <div style="text-align: right; display: flex; flex-direction: column; gap: 10px;">
+                        
+                        <a href="/rides/<%= ride._id %>" class="btn" style="background: #0088cc; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; text-align: center;">View Info / Passengers</a>
+                        
+                        <% 
+                            const today = new Date();
+                            today.setHours(0,0,0,0);
+                            const isUpcoming = new Date(ride.date) >= today;
+                        %>
+
+                        <!-- Only show Cancel button if it's upcoming AND not already cancelled -->
+                        <% if (isUpcoming && ride.status !== 'cancelled') { %>
+                            <form action="/rides/cancel/<%= ride._id %>" method="POST" style="margin: 0;">
+                                <button type="submit" class="btn" style="background: #ff4757; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;" onclick="return confirm('Are you sure you want to cancel this ride? All passenger bookings will be affected.');">Cancel Ride</button>
+                            </form>
+                        <% } else if (ride.status === 'cancelled') { %>
+                             <span style="color: red; font-weight: bold; text-align: center; padding: 8px;">CANCELLED</span>
+                        <% } else { %>
+                            <span style="color: #666; font-style: italic; text-align: center; padding: 8px;">Completed</span>
+                        <% } %>
+
+                    </div>
+
+                </div>
+
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div style="padding: 20px; border: 1px solid #ccc; border-radius: 8px; text-align: center;">
+            <p>You haven't published any rides yet.</p>
+            <br>
+            <a href="/rides/publish" class="btn" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Publish a Ride</a>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

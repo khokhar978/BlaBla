@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - BlaBla</title>
+</head>
+<body>
+    
+    <%- include('./navbar') %>
+
+    <h1>Edit My Profile</h1>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div style="color: red;"><strong>Error:</strong> <%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div style="color: green;"><strong>Success:</strong> <%= success %></div>
+    <% } %>
+
+    <form action="/profile/edit" method="POST" enctype="multipart/form-data">
+        
+        <div style="margin-bottom: 15px;">
+            <label>Current Profile Picture:</label><br>
+            <img src="<%= user.profilePic ? '/profilePictures/'+user.profilePic : '/profilePictures/avtar.webp' %>" 
+            height="100" 
+            width="100" 
+            alt="User Profile"> 
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="profileImage">Upload New Picture:</label><br>
+            <input type="file" id="profileImage" name="profileImage" accept="image/png, image/jpeg, image/jpg">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="name">Full Name:</label><br>
+            <input type="text" id="name" name="name" value="<%= user.name %>" required>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Email (Cannot be changed):</label><br>
+            <input type="email" value="<%= user.email %>" disabled>
+        </div>
+
+        <button type="submit">Save Changes</button>
+        <a href="/profile" style="margin-left: 10px;">Cancel</a>
+    </form>
+
+</body>
+</html>

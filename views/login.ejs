@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BlaBla</title>
+</head>
+<body>
+    <%- include('./navbar') %>
+
+    <h1>Log In to BlaBla</h1>
+
+    <% if (error) { %>
+        <div style="color: red;"><strong>Error:</strong> <%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div style="color: green;"><strong>Success:</strong> <%= success %></div>
+    <% } %>
+
+    <form action="/auth/login" method="POST">
+        <div style="margin-bottom: 10px;">
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" value="<%= typeof data !== 'undefined' && data ? data.email : '' %>" required>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <button type="submit">Log In</button>
+    </form>
+
+    <br>
+    <a href="/auth/forgot-password">Forgot Password?</a>
+    <br><br>
+    <a href="/auth/signup">Don't have an account? Sign up here.</a>
+
+</body>
+</html>

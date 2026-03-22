@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - BlaBla</title>
+</head>
+<body>
+    
+    <%- include('./navbar') %>
+
+    <h1>My Bookings</h1>
+    <p>Your upcoming and past trips.</p>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div style="color: red; margin-bottom: 15px;"><strong>Error:</strong> <%= error %></div>
+    <% } %>
+
+    <% if (bookings.length === 0) { %>
+        <p>You haven't booked any rides yet. <a href="/rides">Find a ride to get started!</a></p>
+    <% } else { %>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <% bookings.forEach(booking => { %>
+                
+                <div style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; max-width: 500px;">
+                    
+                    <!-- Booking Status Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                        <h3 style="margin: 0;">
+                            Status: 
+                            <span style="color: <%= booking.status === 'confirmed' ? 'green' : (booking.status === 'pending' ? '#ff9800' : 'red') %>;">
+                                <%= booking.status.toUpperCase() %>
+                            </span>
+                        </h3>
+                        <small style="color: #666;">Booked: <%= booking.createdAt.toLocaleDateString() %></small>
+                    </div>
+
+                    <!-- Safety check: Did the driver delete the ride? -->
+                    <% if (booking.ride) { %>
+                        <p><strong>Route:</strong> <%= booking.ride.source %> ➔ <%= booking.ride.destination %></p>
+                        <p><strong>Departure:</strong> <%= booking.ride.date.toDateString() %> at <%= booking.ride.departureTime %></p>
+                        
+                        <div style="display: flex; align-items: center; margin: 10px 0;">
+                            <% if (booking.driver.profilePicture) { %>
+                                <img src="<%= booking.driver.profilePicture %>" alt="Driver" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+                            <% } else { %>
+                                <span style="font-size: 20px; margin-right: 10px;">👤</span>
+                            <% } %>
+                            <span><strong>Driver:</strong> <%= booking.driver.name %></span>
+                        </div>
+
+                        <p><strong>Seats Booked:</strong> <%= booking.seatsBooked %></p>
+                        
+                        <!-- Calculate the total price directly in the template -->
+                        <p><strong>Total Price:</strong> ₹<%= booking.seatsBooked * booking.ride.price %></p>
+                        
+                    <% } else { %>
+                        <p style="color: red;"><em>This ride is no longer available or was cancelled by the driver.</em></p>
+                    <% } %>
+
+                </div>
+
+            <% }) %>
+        </div>
+
+    <% } %>
+
+</body>
+</html>

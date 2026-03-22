@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <h2>Search Rides</h2>
+    
+    <!-- Search Form -->
+    <form action="/rides/search" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px;">
+        <input type="text" name="source" placeholder="Leaving from..." value="<%= query.source || '' %>" style="flex: 1; min-width: 200px;">
+        <input type="text" name="destination" placeholder="Going to..." value="<%= query.destination || '' %>" style="flex: 1; min-width: 200px;">
+        <input type="date" name="date" value="<%= query.date || '' %>" style="flex: 1; min-width: 150px;">
+        <input type="number" name="seats" placeholder="Seats (1)" value="<%= query.seats || '' %>" style="width: 80px;">
+        <button type="submit" class="btn" style="height: 42px; margin-top: 10px;">Search</button>
+    </form>
+
+    <div class="rides-list">
+        <% if (rides.length > 0) { %>
+            <% rides.forEach(ride => { %>   
+                <div class="ride-card">
+                    <div>       
+                        <h3 style="margin: 0 0 10px 0;"><%= ride.source %> ➔ <%= ride.destination %></h3>
+                        <p style="margin: 0; color: #555;">
+                            <strong>Date:</strong> <%= new Date(ride.date).toLocaleDateString() %> | 
+                            <strong>Time:</strong> <%= ride.time %>
+                        </p>
+                        <p style="margin: 5px 0 0 0; color: #555;">
+                            <strong>Driver:</strong> <%= ride.driver.name %> | 
+                            <strong>Seats Available:</strong> <%= ride.availableSeats %>
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h2 style="margin: 0 0 10px 0; color: #0088cc;">₹<%= ride.price %></h2>
+                        <a href="/rides/<%= ride._id %>" class="btn" style="background: #20bf6b;">View Map & Book</a>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p>No rides found matching your criteria.</p>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

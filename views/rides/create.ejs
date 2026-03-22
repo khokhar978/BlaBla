@@ -1,0 +1,126 @@
+<%- include('../partials/header') %>
+
+<div class="container" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2>Publish a Ride</h2>
+    <p>Offer a ride to passengers and share your travel costs.</p>
+    
+    <form id="publishForm">
+        <div style="margin-bottom: 15px;">
+            <label>Source City/Address</label><br>
+            <input type="text" name="source" required style="width: 100%;" placeholder="e.g., Panchkula">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label>Destination City/Address</label><br>
+            <input type="text" name="destination" required style="width: 100%;" placeholder="e.g., Chandigarh">
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label>Date</label><br>
+                <input type="date" name="date" required style="width: 100%;">
+            </div>
+            <div style="flex: 1;">
+                <label>Time</label><br>
+                <input type="time" name="departureTime" required style="width: 100%;">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label>Price per Seat (₹)</label><br>
+                <input type="number" name="price" min="0" required style="width: 100%;">
+            </div>
+            <div style="flex: 1;">
+                <label>Total Seats Available</label><br>
+                <input type="number" name="totalSeats" min="1" max="8" required style="width: 100%;">
+            </div>
+        </div>
+
+        <!-- Hidden coordinates fetched dynamically via OpenStreetMap API -->
+        <input type="hidden" name="sourceLat" value="">
+        <input type="hidden" name="sourceLng" value="">
+        <input type="hidden" name="destLat" value="">
+        <input type="hidden" name="destLng" value="">
+
+        <button type="submit" class="btn" style="width: 100%; margin-top: 20px; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Publish Ride
+        </button>
+    </form>
+    
+    <p class="error" style="color: red; margin-top: 15px; font-weight: bold;"></p>
+</div>
+
+<script>
+    const form = document.getElementById('publishForm');
+    const errorElem = document.querySelector('.error');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorElem.textContent = '';
+        
+        const sourceCity = form.source.value;
+        const destCity = form.destination.value;
+        
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.textContent = 'Locating Cities...';
+        submitBtn.disabled = true;
+
+        try {
+            // 1. Fetch Coordinates from OpenStreetMap
+            const [sourceRes, destRes] = await Promise.all([
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(sourceCity)}`),
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(destCity)}`)
+            ]);
+            
+            const sourceData = await sourceRes.json();
+            const destData = await destRes.json();
+
+            if (sourceData.length > 0) {
+                form.sourceLat.value = sourceData[0].lat;
+                form.sourceLng.value = sourceData[0].lon; 
+            } else {
+                throw new Error(`Could not find coordinates for: ${sourceCity}`);
+            }
+
+            if (destData.length > 0) {
+                form.destLat.value = destData[0].lat;
+                form.destLng.value = destData[0].lon;
+            } else {
+                throw new Error(`Could not find coordinates for: ${destCity}`);
+            }
+
+            // 2. Prepare data for your Express backend
+            submitBtn.textContent = 'Creating...';
+            
+            const formData = new FormData(form);
+            const dataObj = Object.fromEntries(formData.entries());
+
+            // 3. Send the JSON data to your Express controller
+            const res = await fetch('/rides/create', {
+                method: 'POST',
+                body: JSON.stringify(dataObj),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (res.ok) {
+                // Assuming your frontend expects to go here after success
+                window.location.assign('/rides/myRides'); 
+            } else {
+                const textError = await res.text();
+                errorElem.textContent = textError || "Failed to publish ride.";
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+            }
+
+        } catch (error) {
+            console.error(error);
+            errorElem.textContent = error.message || 'An error occurred. Please try again.';
+            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>
