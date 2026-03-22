@@ -32,10 +32,16 @@
 
             <hr style="margin: 15px 0;">
 
-            <% if (user && user.userId !== ride.driver._id.toString() && ride.availableSeats > 0 && ride.status !== 'cancelled') { %>
+            <!-- Safety check for user IDs -->
+            <% const currentUserId = user ? (user.userId || user.id || user._id).toString() : null; %>
+            <% const driverId = ride.driver._id.toString(); %>
+
+            <% if (user && currentUserId !== driverId && ride.availableSeats > 0 && ride.status !== 'cancelled') { %>
+                
+                <!-- PASSENGER VIEW: BOOKING FORM -->
                 <form id="bookForm" style="margin-top: 15px;">
                     <input type="hidden" name="rideId" value="<%= ride._id %>">
-                    <input type="hidden" name="seatsBooked" id="seatsBookedInput" value="1"> <!-- Added for backend compatibility -->
+                    <input type="hidden" name="seatsBooked" id="seatsBookedInput" value="1"> 
                     
                     <label>Seats to book:</label>
                     <select name="seats" style="width: auto; display: inline-block; padding: 5px;" onchange="document.getElementById('seatsBookedInput').value = this.value">
@@ -54,14 +60,59 @@
                 </form>
                 <div style="clear: both;"></div>
                 <p class="error" style="color: red; margin-top: 10px; font-weight: bold;"></p>
+
             <% } else if (!user) { %>
                 <p>Please <a href="/auth/login" style="color: #0088cc;">log in</a> to book this ride.</p>
             <% } else if (ride.status === 'cancelled') { %>
                 <p style="color: red; font-weight: bold; text-align: center;">This ride has been cancelled by the driver.</p>
-            <% } else if (ride.availableSeats === 0) { %>
+            <% } else if (ride.availableSeats === 0 && currentUserId !== driverId) { %>
                 <p style="color: orange; font-weight: bold; text-align: center;">This ride is fully booked.</p>
-            <% } else { %>
-                <p style="text-align: center; font-style: italic; color: #666;">This is your published ride.</p>
+            <% } else if (user && currentUserId === driverId) { %>
+                
+                <!-- DRIVER VIEW: PASSENGERS LIST -->
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+                    <h3 style="margin-top: 0; color: #0088cc;">Passengers (<%= typeof passengers !== 'undefined' ? passengers.length : 0 %>)</h3>
+                    
+                    <% if (typeof passengers !== 'undefined' && passengers.length > 0) { %>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <% passengers.forEach(p => { %>
+                                <div style="background: white; border: 1px solid #ccc; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                    
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <% if (p.passenger.profilePicture) { %>
+                                            <img src="<%= p.passenger.profilePicture %>" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                        <% } else { %>
+                                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center;">👤</div>
+                                        <% } %>
+                                        <div>
+                                            <p style="margin: 0;"><strong><%= p.passenger.name %></strong></p>
+                                            <p style="margin: 0; font-size: 0.85em; color: #666;">Seats: <%= p.seatsBooked %> | Status: <span style="text-transform: capitalize;"><%= p.status %></span></p>
+                                        </div>
+                                    </div>
+
+                                    <div style="text-align: right;">
+                                        <p style="margin: 0 0 5px 0; font-weight: bold; color: <%= p.paymentStatus ? 'green' : 'orange' %>;">
+                                            <%= p.paymentStatus ? 'Paid' : 'Pending Cash' %>
+                                        </p>
+                                        
+                                        <% if (!p.paymentStatus && p.status !== 'cancelled') { %>
+                                            <form action="/bookings/confirm-payment/<%= p._id %>" method="POST" style="margin: 0;">
+                                                <button type="submit" class="btn" style="background: #28a745; color: white; padding: 5px 10px; font-size: 0.9em; border: none; border-radius: 4px; cursor: pointer;">
+                                                    Confirm Payment
+                                                </button>
+                                            </form>
+                                        <% } else if (p.status === 'cancelled') { %>
+                                            <span style="color: red; font-size: 0.9em; font-weight: bold;">Cancelled</span>
+                                        <% } %>
+                                    </div>
+
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <p style="margin: 0; color: #666; text-align: center; font-style: italic;">No passengers have booked this ride yet.</p>
+                    <% } %>
+                </div>
             <% } %>
 
             <% if (user) { %>
@@ -75,12 +126,11 @@
     <!-- Map Integration -->
     <div style="flex: 1; min-width: 300px;">
         <h3>Route Map</h3>
-        <!-- CRITICAL: The map div MUST have a height or it won't render -->
         <div id="map" class="map-container" style="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #ccc; z-index: 1;"></div>
     </div>
 </div>
 
-<!-- Base Leaflet CSS and JS (Required for the map to work) -->
+<!-- Base Leaflet CSS and JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -142,7 +192,6 @@
             const dataObj = Object.fromEntries(formData.entries());
 
             try {
-                // Pointed this to the route we established earlier
                 const res = await fetch(`/bookings/create/${dataObj.rideId}`, {
                     method: 'POST',
                     body: JSON.stringify(dataObj),
@@ -150,7 +199,6 @@
                 });
                 
                 if (res.ok) {
-                    // Success! Redirect to the user's bookings page
                     window.location.assign('/bookings/my');
                 } else {
                     const textError = await res.text();

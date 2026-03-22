@@ -54,3 +54,24 @@ export async function cancelBooking(req,res){
         res.redirect("/");
     }
 }
+export async function confirmPayment(req, res) {
+    try {
+        const booking = await Bookings.findById(req.params.id).populate("ride");
+        
+        if (!booking) return res.redirect("/profile");
+
+        // SECURITY CHECK: Ensure the person clicking confirm is actually the driver of this ride!
+        if (booking.ride.driver.toString() === req.user.id) {
+            booking.paymentStatus = true;
+            booking.status = "confirmed"; // Upgrades status from 'pending' to 'confirmed'
+            await booking.save();
+        }
+        
+        // Redirect the driver back to the ride details page so they see the green "Paid" text
+        res.redirect(`/rides/${booking.ride._id}`);
+        
+    } catch (error) {
+        console.error("Error confirming payment:", error);
+        res.redirect("/rides/myRides");
+    }
+}
